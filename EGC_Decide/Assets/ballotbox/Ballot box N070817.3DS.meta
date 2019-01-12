@@ -1,0 +1,148 @@
+fileFormatVersion: 2
+guid: 9ab2b9e383a6f0c40a2aaed0d262868a
+ModelImporter:
+  serializedVersion: 23
+  fileIDToRecycleName:
+    100000: b_gellsch0
+    100002: b_gellschl
+    100004: //RootNode
+    100006: beschlag_0
+    100008: beschlag_s
+    100010: beschlag_u
+    100012: deckel_1
+    100014: Mutter
+    100016: Mutter_1
+    100018: oben
+    100020: oben_Zylin
+    100022: urne
+    400000: b_gellsch0
+    400002: b_gellschl
+    400004: //RootNode
+    400006: beschlag_0
+    400008: beschlag_s
+    400010: beschlag_u
+    400012: deckel_1
+    400014: Mutter
+    400016: Mutter_1
+    400018: oben
+    400020: oben_Zylin
+    400022: urne
+    2100000: st gold
+    2100002: chrom
+    2100004: standart metal
+    2100006: wood
+    2300000: b_gellsch0
+    2300002: b_gellschl
+    2300004: beschlag_0
+    2300006: beschlag_s
+    2300008: beschlag_u
+    2300010: deckel_1
+    2300012: Mutter
+    2300014: Mutter_1
+    2300016: oben
+    2300018: oben_Zylin
+    2300020: urne
+    3300000: b_gellsch0
+    3300002: b_gellschl
+    3300004: beschlag_0
+    3300006: beschlag_s
+    3300008: beschlag_u
+    3300010: deckel_1
+    3300012: Mutter
+    3300014: Mutter_1
+    3300016: oben
+    3300018: oben_Zylin
+    3300020: urne
+    4300000: Mutter_1
+    4300002: Mutter
+    4300004: b_gellschl
+    4300006: b_gellsch0
+    4300008: beschlag_s
+    4300010: beschlag_0
+    4300012: oben
+    4300014: oben_Zylin
+    4300016: beschlag_u
+    4300018: deckel_1
+    4300020: urne
+  externalObjects: {}
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    preserveHierarchy: 0
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+    previousCalculatedGlobalScale: 1
+    hasPreviousCalculatedGlobalScale: 0
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    serializedVersion: 2
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    rootMotionBoneName: 
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 0
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
