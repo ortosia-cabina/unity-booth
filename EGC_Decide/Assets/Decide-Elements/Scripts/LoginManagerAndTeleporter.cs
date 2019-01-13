@@ -6,19 +6,55 @@ using System.Net;
 using Newtonsoft.Json;
 using System;
 using UnityEngine.SceneManagement;
+using System.Linq;
 
 public class LoginManagerAndTeleporter : MonoBehaviour {
 
     [SerializeField]
+    private string serverURL;
+
+    [SerializeField]
     private Transform destination;
     private HttpClient client;
-    public string token;
+    public string token
+    {
+        get
+        {
+            return token_;
+        }
+        set
+        {
+            token_ = value;
+            if (value != null && value != "")
+                getOwnUserId();
+            else
+                thisActorId = -1;
+        }
+    }
+    private string token_;
     [SerializeField]
     private Transform errorPanel;
     [SerializeField]
     private GameObject setPasilloNv2;
     [SerializeField]
     private GameObject pasilloNv1;
+
+    private List<Voting> votacionesPuedeVotar = null;
+    public int thisActorId
+    {
+        get { return thisActorId_; }
+        set { thisActorId_ = value;
+            if (value == -1)
+            {
+                votacionesPuedeVotar = null;
+            }
+            else
+            {
+                getVotingsCanVote();
+            }
+        }
+    }
+    private int thisActorId_;
 
     // Use this for initialization
     void Start () {
@@ -51,6 +87,7 @@ public class LoginManagerAndTeleporter : MonoBehaviour {
             if (token == "" || token == null)
                 indicateError("Estas credenciales no son válidas");
             Debug.Log(values.non_field_errors.Count>0?values.non_field_errors[0]:"nada de nada");
+
         }
         catch (System.ArgumentNullException)
         {
@@ -58,7 +95,7 @@ public class LoginManagerAndTeleporter : MonoBehaviour {
         }
         catch (System.Exception e)
         {
-            Debug.Log(e);
+            Debug.LogError(e);
         }
     }
 
@@ -86,7 +123,7 @@ public class LoginManagerAndTeleporter : MonoBehaviour {
 
     public void makeLogin(string username, string password)
     {
-        client.Post(new System.Uri("http://127.0.0.1:8000/authentication/login/"), new StringContent("{\"username\":\""+username+"\", \"password\":\""+password+"\"}", System.Text.Encoding.UTF8, "application/json"), HttpCompletionOption.AllResponseContent, receiveLogin);
+        client.Post(new System.Uri(serverURL+"/authentication/login/"), new StringContent("{\"username\":\""+username+"\", \"password\":\""+password+"\"}", System.Text.Encoding.UTF8, "application/json"), HttpCompletionOption.AllResponseContent, receiveLogin);
     }
 
     private void refreshRooms(Voting[] votings)
@@ -101,51 +138,146 @@ public class LoginManagerAndTeleporter : MonoBehaviour {
         float longitudinalDistance = 0.2751f;
         bool isRightOrLeft = false;
         int distanceFromCenter = 0;
-        PasilloController isRoomRightOrLeft = null;
-        foreach (var item in votings)
+        int distanceFromBottom = 0;
+        foreach (var item in new List<Voting>(votings).OrderBy(o => o.id).ToList())
         {
-            if (isRoomRightOrLeft == null)
+            var pasillo = Instantiate(pasilloNv1, etsiiInterior.transform);
+            pasillo.transform.localScale = new Vector3(isRightOrLeft ? 1 : -1, 1, 1);
+            if (isRightOrLeft)
             {
-                var pasillo = Instantiate(pasilloNv1, etsiiInterior.transform);
-                var pasillo2 = Instantiate(setPasilloNv2, etsiiInterior.transform);
-                pasillo2.transform.localScale = new Vector3(1, 1, 1);
-                pasillo.transform.localScale = new Vector3(isRightOrLeft ? 1 : -1, 1, 1);
-                if (isRightOrLeft)
-                {
-                    pasillo.transform.localPosition = new Vector3(rightSideLv1Position.x - horizontalDistance * distanceFromCenter, rightSideLv1Position.y, rightSideLv1Position.z);
-                    pasillo2.transform.localPosition = new Vector3(rightSideLv2Position.x - horizontalDistance * distanceFromCenter, rightSideLv2Position.y, rightSideLv2Position.z);
-                    distanceFromCenter += 1;
-                }
-                else
-                {
-                    pasillo.transform.localPosition = new Vector3(leftSideLv1Position.x + horizontalDistance * distanceFromCenter, leftSideLv1Position.y, leftSideLv1Position.z);
-                    pasillo2.transform.localPosition = new Vector3(leftSideLv2Position.x + horizontalDistance * distanceFromCenter, leftSideLv2Position.y, leftSideLv2Position.z);
-                }
-                isRightOrLeft = !isRightOrLeft;
-                isRoomRightOrLeft = pasillo2.GetComponent<PasilloController>();
-                isRoomRightOrLeft.textoDcha = "Votación:\n"+item.name;
-                isRoomRightOrLeft.votableDcha = true;
+                pasillo.transform.localPosition = new Vector3(rightSideLv1Position.x - horizontalDistance * distanceFromCenter, rightSideLv1Position.y, rightSideLv1Position.z);
+                distanceFromCenter += 1;
             }
             else
             {
-                isRoomRightOrLeft.textoIzda = "Votación:\n" + item.name;
-                isRoomRightOrLeft.votableIzda = true;
-                isRoomRightOrLeft = null;
+                pasillo.transform.localPosition = new Vector3(leftSideLv1Position.x + horizontalDistance * distanceFromCenter, leftSideLv1Position.y, leftSideLv1Position.z);
+                foreach(var texto in pasillo.transform.GetComponentsInChildren<TMPro.TextMeshPro>())
+                {
+                    texto.transform.localScale = new Vector3(-texto.transform.localScale.x, texto.transform.localScale.y, texto.transform.localScale.z);
+                }
             }
+            pasillo.transform.Find("GeneralSign").Find("TextMeshPro").GetComponent<TMPro.TextMeshPro>().text = "Votación:\n" + item.name +"\nID: "+item.id;
+            bool hasUnlockables = false;
+            foreach (var item_ in item.questions)
+                foreach(var item__ in item_.options)
+                    if (item__.unlockquestion.Count > 0)
+                        hasUnlockables = true;
+            if (hasUnlockables)
+            {
+                pasillo.transform.Find("fermat").Find("Cube").Find("TextMeshPro").GetComponent<TMPro.TextMeshPro>().text = "Tipo de votación no soportado";
+            }else if (checkCanVote(item.id))
+            {
+                pasillo.transform.Find("fermat").gameObject.SetActive(false);
+                bool isRightSide=false;
+                PasilloController current = null;
+                GameObject pasillo2 = null;
+                foreach (var i in item.questions)
+                {
+                    if (!isRightSide)
+                    {
+                        pasillo2 = Instantiate(setPasilloNv2, etsiiInterior.transform);
+                        pasillo2.transform.localScale = new Vector3(1, 1, 1);
+                        pasillo2.transform.localPosition = new Vector3(rightSideLv2Position.x - horizontalDistance * (distanceFromCenter-1), rightSideLv2Position.y, rightSideLv2Position.z-(distanceFromBottom)*longitudinalDistance);
+                        pasillo.GetComponent<VotacionController>().ballotBoxes.Add(pasillo2.transform.Find("aula").Find("TABLE_Folding").Find("Ballot box N070817").GetComponent<BallotBox>());
+                        current = pasillo2.GetComponent<PasilloController>();
+                        current.votacion = item;
+                        current.preguntaIzda = i;
+                    }
+                    else
+                    {
+                        pasillo.GetComponent<VotacionController>().ballotBoxes.Add(pasillo2.transform.Find("aula (1)").Find("TABLE_Folding (1)").Find("Ballot box N070817").GetComponent<BallotBox>());
+                        current.preguntaDcha = i;
+                        Debug.Log("Derecha: " + i.desc);
+                        distanceFromBottom++;
+                    }
+                    isRightSide = !isRightSide;
+                }
+            }
+            isRightOrLeft = !isRightOrLeft;
         }
+    }
+
+    private bool checkCanVote(int id)
+    {
+        foreach(var vot in votacionesPuedeVotar)
+        {
+            if (vot.id == id)
+                return true;
+        }
+        return false;
     }
 
     public void getVotings()
     {
-        client.Get(new Uri("http://127.0.0.1:8000/voting/"), HttpCompletionOption.AllResponseContent, r => {
-            string s = "{\"Items\":" + r.ReadAsString() + "}";
+        client.Get(new Uri(serverURL+"/voting/"), HttpCompletionOption.AllResponseContent, r => {
+            string s = "";
+            try
+            {
+                s = "{\"Items\":" + r.ReadAsString() + "}";
+            }
+            catch (System.ArgumentNullException)
+            {
+                indicateError("El servidor no está activo en este momento");
+                return;
+            }
+            catch (System.Exception e)
+            {
+                Debug.Log(e);
+                return;
+            }
             refreshRooms(JsonHelper.FromJson<Voting>(s));
+        });
+    }
+
+    public void getOwnUserId()
+    {
+        client.Headers.Add("Authorization", "Token "+token);
+        client.Post(new Uri(serverURL + "/authentication/getuser/"), new StringContent("{\"token\":\""+token+"\"}", System.Text.Encoding.UTF8, "application/json"), HttpCompletionOption.AllResponseContent, r => {
+            string s = "";
+            try
+            {
+                User u = JsonUtility.FromJson<User>(r.ReadAsString());
+                thisActorId = u.id;
+            }
+            catch (System.ArgumentNullException)
+            {
+                indicateError("El servidor no está activo en este momento");
+                return;
+            }
+            catch (System.Exception e)
+            {
+                Debug.Log(e);
+                return;
+            }
+        });
+    }
+
+    public void getVotingsCanVote()
+    {
+        client.Get(new Uri(serverURL + "/census/voter/"+thisActorId+"/"), HttpCompletionOption.AllResponseContent, r => {
+            string s = "";
+            try
+            {
+                s = "{\"Items\":" + r.ReadAsString() + "}";
+                Debug.Log(s);
+            }
+            catch (System.ArgumentNullException)
+            {
+                indicateError("El servidor no está activo en este momento");
+                return;
+            }
+            catch (System.Exception e)
+            {
+                Debug.Log(e);
+                return;
+            }
+            votacionesPuedeVotar = new List<Voting>(JsonHelper.FromJson<Voting>(s));
         });
     }
 
     public void makeLogout()
     {
-        client.Post(new System.Uri("http://127.0.0.1:8000/authentication/logout/"), new StringContent("", System.Text.Encoding.UTF8, "application/json"), HttpCompletionOption.AllResponseContent, null);
+        client.Post(new System.Uri(serverURL+"/authentication/logout/"), new StringContent("", System.Text.Encoding.UTF8, "application/json"), HttpCompletionOption.AllResponseContent, null);
         token = null;
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
@@ -171,16 +303,45 @@ public class Voting
     public string name;
     public string desc;
     public List<Question> questions;
-    public DateTime start_date;
-    public DateTime end_date;
+    public string start_date;
+    public string end_date;
+    public DateTime startTime
+    {
+        get
+        {
+            return DateTime.Parse(start_date);
+        }
+    }
+    public DateTime endTime
+    {
+        get
+        {
+            return DateTime.Parse(end_date);
+        }
+    }
 }
 
 [System.Serializable]
 public class Question
 {
-    public int id;
     public string desc;
     public List<Option> options;
+    public override bool Equals(object obj)
+    {
+        var item = obj as Question;
+
+        if (item == null)
+        {
+            return false;
+        }
+
+        return options.Count.Equals(item.options.Count) && desc.Equals(item.desc);
+    }
+
+    public override int GetHashCode()
+    {
+        return desc.GetHashCode();
+    }
 }
 
 [System.Serializable]
@@ -188,6 +349,31 @@ public struct Option
 {
     public int number;
     public string option;
+    public List<Question> unlockquestion;
+    public override bool Equals(object obj)
+    {
+        if (!(obj is Option))
+            return false;
+
+        Option mys = (Option)obj;
+        return mys.number.Equals(number) && mys.option.Equals(option);
+    }
+
+    public override int GetHashCode()
+    {
+        return number.GetHashCode();
+    }
+}
+
+[System.Serializable]
+public struct User
+{
+    public int id;
+    public string username;
+    public string first_name;
+    public string last_name;
+    public string email;
+    public bool is_staff;
 }
 
 public static class JsonHelper

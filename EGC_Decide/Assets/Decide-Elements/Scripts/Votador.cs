@@ -40,12 +40,14 @@ public class Votador : MonoBehaviour {
                     this.votacion = temp.votacion;
                     this.answerIndex = temp.number;
                     this.pregunta = temp.pregunta;
+                    Debug.Log("Has cogido la papeleta " + pregunta.options[answerIndex-1].option + " para la pregunta " + pregunta.desc+ " de la votación "+votacion.desc);
                 }
                 else if (objectHit.CompareTag("BallotBox"))
                 {
                     BallotBox b = objectHit.GetComponent<BallotBox>();
                     if (b.pregunta.Equals(pregunta) && b.voting.id == votacion.id)
                     {
+                        Debug.Log("Vas a votar");
                         b.Vote(answerIndex);
                     }
                 }
