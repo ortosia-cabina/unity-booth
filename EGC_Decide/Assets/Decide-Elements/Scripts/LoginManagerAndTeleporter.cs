@@ -11,11 +11,11 @@ using System.Linq;
 public class LoginManagerAndTeleporter : MonoBehaviour {
 
     [SerializeField]
-    private string serverURL;
+    public string serverURL;
 
     [SerializeField]
     private Transform destination;
-    private HttpClient client;
+    public HttpClient client;
     public string token
     {
         get
@@ -99,7 +99,7 @@ public class LoginManagerAndTeleporter : MonoBehaviour {
         }
     }
 
-    private void indicateError(string error)
+    public void indicateError(string error)
     {
         StartCoroutine(indicateErrorCoroutine(error, 2));
     }
@@ -171,6 +171,7 @@ public class LoginManagerAndTeleporter : MonoBehaviour {
                 bool isRightSide=false;
                 PasilloController current = null;
                 GameObject pasillo2 = null;
+                pasillo.GetComponent<VotacionController>().votacionId = item.id;
                 foreach (var i in item.questions)
                 {
                     if (!isRightSide)

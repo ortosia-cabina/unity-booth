@@ -10,7 +10,7 @@ public class Votador : MonoBehaviour {
     {
         get
         {
-            return Time.timeScale == 1;
+            return Time.timeScale != 1;
         }
     }
     public Sprite[] reticleImages;
@@ -40,13 +40,15 @@ public class Votador : MonoBehaviour {
                     this.votacion = temp.votacion;
                     this.answerIndex = temp.number;
                     this.pregunta = temp.pregunta;
-                    Debug.Log("Has cogido la papeleta " + pregunta.options[answerIndex-1].option + " para la pregunta " + pregunta.desc+ " de la votación "+votacion.desc);
+                    Debug.Log("Has cogido la papeleta " + pregunta.options.Find(i => i.number == answerIndex).option + " para la pregunta " + pregunta.desc+ " de la votación "+votacion.desc);
+                    transform.Find("VoteSource").GetComponent<AudioSource>().Play();
                 }
                 else if (objectHit.CompareTag("BallotBox"))
                 {
                     BallotBox b = objectHit.GetComponent<BallotBox>();
                     if (b.pregunta.Equals(pregunta) && b.voting.id == votacion.id)
                     {
+                        transform.Find("VoteSource").GetComponent<AudioSource>().Play();
                         Debug.Log("Vas a votar");
                         b.Vote(answerIndex);
                     }
